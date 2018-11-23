@@ -1,0 +1,26 @@
+package main.scala.com.kv.practice
+
+import org.apache.spark._
+import org.apache.spark.SparkContext._
+import org.apache.log4j._
+
+object KVFindFriendsByAge {
+  def main(args : Array[String]){
+    Logger.getLogger("org").setLevel(Level.INFO)
+    
+    val sc = new SparkContext("local[*]", "KVFindFriendsByAge");
+    
+    val lines = sc.textFile("../fakefriends.csv")
+    
+    val rdd = lines.map(line => (line.split(",")(2).toInt,line.split(",")(3).toInt))
+    
+    val totalByAge = rdd.mapValues(x=> (x, 1)).reduceByKey((x, y) => (x._1+y._1, x._2+y._2))
+    
+    val average = totalByAge.mapValues(x => (x._1/x._2))
+    
+    val results = average.collect()
+    
+    results.sorted.foreach(println)
+     
+  }
+}
